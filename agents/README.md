@@ -2,7 +2,9 @@
 
 Money agents, not chatbots. Every one is a **pair**: enforcement code (the teeth,
 holds even if the agent's model is fully compromised) + an `.ssl` policy (the
-auditable statement). If code and spec disagree, **the code wins**.
+auditable statement). The `.ssl` files are **descriptive** — they document the
+policy the code enforces, and are not executed. The `.mjs` implementation is the
+single source of truth; if code and spec disagree, **the code wins**.
 
 | agent | role | teeth | tests |
 |---|---|---|---|
@@ -54,3 +56,30 @@ can disarm it.
   AntiAbuse delegates whole-graph checks to it (cross-language boundary).
 - The `.ssl` files have no Slippay-side runtime yet; they are the auditable specs,
   the `.mjs` is what executes.
+
+## Two policy mechanisms — `.ssl` vs AXL
+
+The repo carries two distinct policy-expression mechanisms. They are not
+interchangeable, and only one of them is machine-checked.
+
+**`.ssl` documents (descriptive).** `agents/{antiabuse,authority,billing,concierge,
+perena,pulse,settlement}/*.ssl` are human-readable statements of the limits each
+agent enforces. There is no `.ssl` parser or runtime, so these files are **not**
+executed and are **not** a security boundary. They are kept honest by a test that
+asserts the documented limits match the constants in the corresponding `.mjs`
+(see `agents/policy.test.mjs`); when the code changes, the test fails until the
+document is updated. Treat them as auditable documentation, not as proofs.
+
+**AXL (normative, machine-checked).** `agents/axl/` (grammar + proofs) and the
+`axl-compiler` crate compile `.axl` sources through a parser, SMT layer, certifier
+and invariant prover, gated by `axl-compiler/scripts/axl-gate.sh`. AXL policies
+are *discharged* — the gate proves the invariant rather than trusting an
+assertion. The on-chain budget invariant (`outflow ≤ 2·window_cap`) is checked
+this way in `agents/axl/proofs/`.
+
+**When to use which.** Use AXL when a property must be *proven* (budget ceilings,
+invariants over action sequences) — route new machine-checkable policies through
+`axl-compiler` and the gate. Use `.ssl` only to *describe* what the deterministic
+`.mjs` checks already enforce, for auditors and reviewers. Never treat an `.ssl`
+`@assertion` as the boundary; the boundary is the bound toolset, the deterministic
+gate, the on-chain cap, and HALT.

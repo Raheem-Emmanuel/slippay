@@ -3,6 +3,12 @@
 // SOUL_VERSION := 1.0.0-authority
 // ¬∃line(l) : removable(l) ∧ ¬loss(behavior)
 //
+// STATUS: DESCRIPTIVE. This .ssl document is human-/auditor-readable
+// documentation of the policy that the code enforces. It is NOT parsed or
+// executed by any test or runtime. The authoritative source of truth is the
+// implementation in agents/authority/authorize.mjs. See agents/README.md for
+// the relationship between .ssl documents and the axl-compiler AXL gate.
+//
 // READING ORDER OF PRECEDENCE (money system — declare it):
 //   The TEETH are code: agents/authority/authorize.mjs. This spec is the
 //   human-/auditor-readable statement of the policy that the code enforces.
@@ -50,6 +56,11 @@
 // ═══════════════════════════════════════════════════════════
 // ASSERTIONS — each one names the CODE that enforces it.
 // ═══════════════════════════════════════════════════════════
+//
+// NOTE: The numeric limits and reason strings below are asserted equal to the
+// constants exported by agents/authority/authorize.mjs in
+// agents/authority/authority.ssl.test.mjs. If you change a constant in the
+// code, update this document and the test together.
 
 @assertions ~1.0
   // 1. AUTHENTICITY — DID/key, not a string.  [authorize.mjs → authorizeIntent step 1]
@@ -92,6 +103,10 @@
 // ═══════════════════════════════════════════════════════════
 // MEMORY — typed, scoped
 // ═══════════════════════════════════════════════════════════
+//
+// The reason strings "bad_signature", "term_drift", and "replay" above are
+// exported as REASONS from agents/authority/authorize.mjs and are checked
+// against this document by authority.ssl.test.mjs.
 
 @memory[authority_state] ~1.0
   seen_nonces      $ append-only set, persist, ttl=∞ within mandate lifetime $  // replay ledger

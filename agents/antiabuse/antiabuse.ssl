@@ -2,6 +2,12 @@
 // extends: base_wave_agent
 // SOUL_VERSION := 1.0.0-antiabuse
 //
+// STATUS: DESCRIPTIVE. This .ssl document is documentation, not a machine-checked
+// policy. The authoritative source of truth is the implementation:
+// agents/antiabuse/antiabuse.mjs. The limits asserted below are checked against
+// the code's constants by agents/antiabuse/antiabuse.ssl.test.mjs (see
+// agents/README.md for the normative-vs-descriptive policy and the AXL mechanism).
+//
 // PRECEDENCE (money system): teeth are code — agents/antiabuse/antiabuse.mjs.
 // AntiAbuse is the most dangerous agent: it can HALT any other. Treat it like
 // root — hard ACL, immutable audit, external kill-switch. It holds NO money

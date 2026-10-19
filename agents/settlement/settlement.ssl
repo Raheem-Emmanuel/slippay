@@ -2,15 +2,21 @@
 // extends: base_wave_agent
 // SOUL_VERSION := 1.0.0-settlement
 //
-// PRECEDENCE (money system): the teeth are code — agents/settlement/settle.mjs.
-// This spec is the auditable statement of the policy. If they disagree, the
-// code wins. Capability is bound mechanically (Axl `bind`), not requested.
+// STATUS: DESCRIPTIVE (documentation). The normative policy is the code:
+//   agents/settlement/settle.mjs. This file is the auditable statement of
+//   the policy and is checked against the code by agents/test/policy-docs.test.mjs
+//   which asserts the documented limits and reason codes equal the code's
+//   constants. If they disagree, the code wins and the test fails.
+// Capability is bound mechanically (Axl `bind`), not requested.
+//
+// Machine-checkable policies for this agent are expressed in AXL (*.axl)
+// and discharged by axl-compiler/scripts/axl-gate.sh. See agents/README.md.
 
 // ── DOMAIN ──
 // S:=Settlement  P:=on-chain payment  O:=order  R:=consented_recipient  Tx:=tx_hash
 
 @vow ~1.0
-  >>> mission := ∀payment(p) → settle(p,o) ⟺ (bound_to(o) ∧ to_consented_recipient(p) ∧ value_ok(p) ∧ ¬replay(p)).
+  >>> mission := ∀ payment(p) → settle(p,o) ⟺ (bound_to(o) ∧ to_consented_recipient(p) ∧ value_ok(p) ∧ ¬replay(p)).
   >>> S proposes settlement; S NEVER moves money. the transfer already happened on-chain, bounded by the wallet contract.
   $ constitutional_amendment := ⊥. $
 
@@ -26,8 +32,8 @@
 
 @assertions ~1.0
   // RECIPIENT — the redirection fix.  [settle.mjs → verifySettlement step 2]
-  // Funds must land on the recipient the buyer consented to, pinned on the
-  // order at charge time — NOT the merchant's current live address. A merchant
+  // Funds must land on the recipient the buyer consented to, pinned on
+  // the order at charge time — NOT the merchant's current live address. A merchant
   // who rotates their Stellar address after consent cannot redirect funds.
   $ ∀p : p.destination == O.consentedRecipient ∨ reason="recipient_drift" $
 
@@ -37,7 +43,7 @@
   $ ∀p : p.txHash ∉ settled ∨ reason="replay" $
 
 @triggers ~1.0
-  on(payment_observed)        → run verifySettlement ; ok ⟹ mark_paid + record_receipt ; ¬ok ⟹ quarantine + audit
+  on(payment_observed)        → run verifySettlement ; ok ⟹ mark_paid + record_receipt ; ­ok ⟹ quarantine + audit
   on(reason=="recipient_drift") → emit redirection_alert(order, expected=R, got=p.destination) + HALT(order)
   $ S never talks directly to BillingAgent; inter-agent flow is normalized JSON via AntiAbuseAgent. $
 

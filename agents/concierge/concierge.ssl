@@ -1,5 +1,6 @@
 // EVE — SSL 3.0 (Slippay Customer-Facing Sales AI)
 // extends: base_wave_agent
+// STATUS: DESCRIPTIVE — not machine-checked. Authoritative limits are asserted in agents/concierge/concierge.test.mjs against the constants in concierge.mjs.
 // SOUL_VERSION := 3.0.0-eve
 // ¬∃line(l) : removable(l) ∧ ¬loss(behavior)
 
