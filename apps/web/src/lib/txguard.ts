@@ -1,4 +1,5 @@
 import { TransactionBuilder, Networks, StrKey } from "@stellar/stellar-sdk";
+import { stellarToStroops } from "@slippay/shared";
 
 const PASS: Record<string, string> = { TESTNET: Networks.TESTNET, PUBLIC: Networks.PUBLIC };
 
@@ -72,8 +73,8 @@ export function assertPaymentMatches(
     }
   }
   if (expect.maxFee !== undefined) {
-    const gotFee = toStrools(s.fee);
-    const maxFee = toStrools(expect.maxFee);
+    const gotFee = toStroops(s.fee);
+    const maxFee = toStroops(expect.maxFee);
     if (gotFee === null || maxFee === null) {
       throw new Error("guard: taxa não numérica");
     }
@@ -81,12 +82,21 @@ export function assertPaymentMatches(
       throw new Error(`guard: taxa acima do máximo (assinaria ${s.fee}, máximo ${expect.maxFee})`);
     }
   }
-  const got = toStrools(pay.amount ?? "");
-  const want = toStrools(expect.amount);
-  if (got === null || want === null) {
+  if (!pay.amount || typeof pay.amount !== "string") {
     throw new Error("guard: valor não numérico");
   }
-  if (got !== want) {
+  // Money math runs in stroops (BigInt) to avoid IEEE-754 boundary errors at
+  // the 7th decimal (Audit-003 L4 / Issue #315). Both sides are parsed into
+  // integer stroops and compared for exact equality.
+  let gotStroops: bigint;
+  let wantStroops: bigint;
+  try {
+    gotStroops = stellarToStroops(pay.amount);
+    wantStroops = stellarToStroops(expect.amount);
+  } catch {
+    throw new Error("guard: valor não numérico");
+  }
+  if (gotStroops !== wantStroops) {
     throw new Error(`guard: valor divergente (assinaria ${pay.amount}, esperado ${expect.amount})`);
   }
 }
